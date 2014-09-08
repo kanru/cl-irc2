@@ -32,7 +32,13 @@
 
 (defpackage #:cl-irc2
   (:use #:cl)
-  (:nicknames #:irc))
+  (:nicknames #:irc)
+  (:export #:message
+           #:raw-message
+           #:message-prefix
+           #:message-command
+           #:message-args
+           ))
 
 ;;; packages.lisp ends here
 
