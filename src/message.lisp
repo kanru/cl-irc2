@@ -262,7 +262,7 @@
     (labels ((ch ()
                (char string point))
              (nospcrlfcl-p (char)
-               (not (member char '(#\Nul #\Return #\Newline #\Space #\:))))
+               (not (member char '(#\Nul #\Return #\Linefeed #\Space #\:))))
              (middle-p (char)
                (or (char= #\: char)
                    (nospcrlfcl-p char)))
@@ -285,6 +285,7 @@
               :until (= n-param 15)
               :until found-trailing
               :until (not point)
+              :until (member (ch) '(#\Return #\Linefeed))
               :when (char= #\Space (ch))
                 :do (incf point)
                     (incf n-param)
