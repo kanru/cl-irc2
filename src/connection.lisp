@@ -1,4 +1,4 @@
-;;;; packages.lisp --- Packages
+;;;; connection.lisp --- IRC client library
 
 ;;; Copyright (C) 2014  Kan-Ru Chen (陳侃如)
 
@@ -28,19 +28,37 @@
 
 ;;;; Code:
 
-(in-package #:cl-user)
+(in-package #:cl-irc2)
 
-(defpackage #:cl-irc2
-  (:use #:cl)
-  (:nicknames #:irc)
-  (:export #:connection
-           #:current-connection
-           #:make-connection
-           #:with-connection
-           #:send-raw-message
-           #:recv-raw-message))
+(defvar *current-connection*)
 
-;;; packages.lisp ends here
+(defclass connection ()
+  ((%stream :initarg :stream
+            :accessor connection-stream)))
+
+(defun current-connection ()
+  *current-connection*)
+
+(defun make-connection (stream)
+  (make-instance 'connection :stream stream))
+
+(defmacro with-connection ((connection) &body body)
+  `(let ((*current-connection* ,connection))
+     ,@body))
+
+(defgeneric send-raw-message (connection msg)
+  (:method (connection msg)
+    (check-type msg string)
+    (let ((stream (connection-stream connection)))
+      (write-line msg stream)
+      (force-output stream))))
+
+(defgeneric recv-raw-message (connection)
+  (:method (connection)
+    (let ((stream (connection-stream connection)))
+      (read-line stream))))
+
+;;; connection.lisp ends here
 
 ;;; Local Variables:
 ;;; mode: lisp
