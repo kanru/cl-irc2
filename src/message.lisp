@@ -59,33 +59,57 @@
                    (args message-args)) message
     (format-message prefix command args)))
 
-(defun /pass (password)
-  (format-message nil "PASS" password))
-
-(defun /nick (nickname)
-  (format-message nil "NICK" nickname))
+(macrolet ((def (command (&rest args) &optional form)
+             `(defun ,command (,@args)
+                ,(if form
+                     form
+                     (let ((cmd (string-upcase
+                                 (string-trim
+                                  '(#\/) (symbol-name command))))
+                           (args (remove '&optional args)))
+                       `(format-message nil ,cmd ,@args))))))
+  (def /pass (password))
+  (def /nick (nickname))
+  (def /user (user mode realname)
+    (format-message nil "USER" user mode "*" realname))
+  (def /oper (name password))
+  (def /mode (nickname-or-channel &rest params)
+    (apply #'format-message nil "MODE" nickname-or-channel params))
+  (def /service (nickname distribution type info)
+    (format-message nil "SERVICE" nickname "*" distribution type "*" info))
+  (def /quit (&optional quit-message))
+  (def /squit (server comment))
+  (def /invite (nickname channel))
+  (def /privmsg (target text))
+  (def /notice (target text))
+  (def /squery (servicename text))
+  (def /kill (nickname comment))
+  (def /rehash ())
+  (def /die ())
+  (def /restart ())
+  (def /wallops (text))
+  (def /topic (channel &optional topic))
+  (def /motd (&optional target))
+  (def /lusers (&optional mask target))
+  (def /version (&optional target))
+  (def /stats (&optional query target))
+  (def /links (&optional remote-server server-mask))
+  (def /time (&optional target))
+  (def /connect (target-server port &optional remote-server))
+  (def /trace (&optional target))
+  (def /admin (&optional target))
+  (def /info (&optional target))
+  (def /servlist (&optional mask type))
+  (def /who (&optional mask oper)
+    (format-message nil "WHO" mask (when oper "o")))
+  (def /ping (server1 &optional server2))
+  (def /pong (server1 &optional server2))
+  (def /away (&optional text))
+  (def /summon (user &optional target channel))
+  (def /users (&optional target)))
 
 (defclass nick-message (message) ())
-
-(defun /user (user mode realname)
-  (format-message nil "USER" user mode "*" realname))
-
-(defun /oper (name password)
-  (format-message nil "OPER" name password))
-
-(defun /mode (nickname-or-channel &rest params)
-  (apply #'format-message nil "MODE" nickname-or-channel params))
-
 (defclass mode-mesage (message) ())
-
-(defun /service (nickname distribution type info)
-  (format-message nil "SERVICE" nickname "*" distribution type "*"  info))
-
-(defun /quit (&optional quit-message)
-  (format-message nil "QUIT" quit-message))
-
-(defun /squit (server comment)
-  (format-message nil "SQUIT" server comment))
 
 (defun comma-list (list &key key)
   (let ((list (if (atom list) (list list) list)))
@@ -115,9 +139,6 @@
 
 (defclass part-message (message) ())
 
-(defun /topic (channel &optional topic)
-  (format-message nil "TOPIC" channel topic))
-
 (defclass topic-message (message) ())
 
 (defun /names (channels)
@@ -126,62 +147,14 @@
 (defun /list (channels)
   (format-message nil "LIST" (comma-list channels)))
 
-(defun /invite (nickname channel)
-  (format-message nil "INVITE" nickname channel))
-
 (defclass invite-message (message) ())
 
 (defun /kick (channels users &optional comment)
   (format-message nil "KICK" (comma-list channels) (comma-list users) comment))
 
-(defun /privmsg (target text)
-  (format-message nil "PRIVMSG" target text))
-
 (defclass privmsg-message (message) ())
 
-(defun /notice (target text)
-  (format-message nil "NOTICE" target text))
-
 (defclass notice-message (message) ())
-
-(defun /motd (&optional target)
-  (format-message nil "MOTD" target))
-
-(defun /lusers (&optional mask target)
-  (format-message nil "LUSERS" mask target))
-
-(defun /version (&optional target)
-  (format-message nil "VERSION" target))
-
-(defun /stats (&optional query target)
-  (format-message nil "STATS" query target))
-
-(defun /links (&optional remote-server server-mask)
-  (format-message nil "LINKS" remote-server server-mask))
-
-(defun /time (&optional target)
-  (format-message nil "TIME" target))
-
-(defun /connect (target-server port &optional remote-server)
-  (format-message nil "CONNECT" target-server port remote-server))
-
-(defun /trace (&optional target)
-  (format-message nil "TRACE" target))
-
-(defun /admin (&optional target)
-  (format-message nil "ADMIN" target))
-
-(defun /info (&optional target)
-  (format-message nil "INFO" target))
-
-(defun /servlist (&optional mask type)
-  (format-message nil "SERVLIST" mask type))
-
-(defun /squery (servicename text)
-  (format-message nil "SQUUERY" servicename text))
-
-(defun /who (&optional mask oper)
-  (format-message nil "WHO" mask (when oper "o")))
 
 (defun /whois (users &optional target)
   (format-message nil "WHOIS" target (comma-list users)))
@@ -189,43 +162,13 @@
 (defun /whowas (nicknames &optional count target)
   (format-message nil "WHOWAS" (comma-list nicknames) count target))
 
-(defun /kill (nickname comment)
-  (format-message nil "KILL" nickname comment))
-
-(defun /ping (server1 &optional server2)
-  (format-message nil "PING" server1 server2))
-
 (defclass ping-message (message) ())
-
-(defun /pong (server1 &optional server2)
-  (format-message nil "PONG" server1 server2))
 
 (defclass pong-message (message) ())
 
 (defclass error-message (message) ())
 
-(defun /away (&optional text)
-  (format-message nil "AWAY" text))
-
 (defclass away-message (message) ())
-
-(defun /rehash ()
-  (format-message nil "REHASH"))
-
-(defun /die ()
-  (format-message nil "DIE"))
-
-(defun /restart ()
-  (format-message nil "RESTART"))
-
-(defun /summon (user &optional target channel)
-  (format-message nil "SUMMON" user target channel))
-
-(defun /users (&optional target)
-  (format-message nil "TARGET" target))
-
-(defun /wallops (text)
-  (format-message nil "WALLOPS" text))
 
 (defun /userhost (&rest nicknames)
   (apply #'format-message nil "USERHOST" nicknames))
