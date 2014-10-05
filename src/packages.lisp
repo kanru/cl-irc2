@@ -250,10 +250,6 @@
 (defpackage #:cl-irc2
   (:use #:cl)
   (:nicknames #:irc)
-  (:shadow #:restart
-           #:time
-           #:trace
-           #:list)
   (:export #:connection
            #:current-connection
            #:make-connection
