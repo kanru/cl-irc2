@@ -38,6 +38,9 @@
            #:trace
            #:list)
   (:export #:message
+           #:message-prefix
+           #:message-command
+           #:message-args
            #:message-string
            #:make-message
            #:pass
