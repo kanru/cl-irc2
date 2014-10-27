@@ -381,7 +381,7 @@ crlf       =  %x0D %x0A   ; \"carriage return\" \"linefeed\""
   (let* ((msg (parse-message raw-message))
          (prefix (car msg))
          (command (cadr msg))
-         (args (cddr msg))
+         (args (caddr msg))
          (class (gethash command *message-class-hashtable* 'message)))
     (make-instance class :prefix prefix
                          :command command
