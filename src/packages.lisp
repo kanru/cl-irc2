@@ -259,6 +259,7 @@
            #:with-connection
            #:client
            #:client-user
+           #:client-nick
            #:client-realname
            #:client-channels
            #:send-message
